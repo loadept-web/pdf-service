@@ -4,9 +4,12 @@ import subprocess
 import tempfile
 import logging
 
+
 class FileService:
     def compress_pdf_buffer(self, pdf_bytes: bytes, quality: str) -> bytes:
-        logging.debug(f"Compressing {len(pdf_bytes)} bytes with quality={quality} in buffer")
+        logging.debug(
+            f"Compressing {len(pdf_bytes)} bytes with quality={quality} in buffer"
+        )
 
         gs_cmd = [
             "gs",
@@ -24,7 +27,7 @@ class FileService:
             "-dFILTERTEXTANNOTATIONS=true",
             "-dFILTERIMAGEANNOTATIONS=true",
             "-sOutputFile=-",
-            "-"
+            "-",
         ]
         gs_process: subprocess.Popen = None
 
@@ -33,12 +36,14 @@ class FileService:
                 gs_cmd,
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE
+                stderr=subprocess.PIPE,
             )
 
             gs_output, gs_err = gs_process.communicate(input=pdf_bytes, timeout=60)
             if gs_process.returncode != 0:
-                raise RuntimeError(f"Error to compress file: {gs_err.decode('utf-8', 'ignore')}")
+                raise RuntimeError(
+                    f"Error to compress file: {gs_err.decode('utf-8', 'ignore')}"
+                )
 
             if not gs_output:
                 raise RuntimeError("Compression failed: no output generated")
@@ -53,7 +58,9 @@ class FileService:
             raise RuntimeError(f"Unexpected error: {str(e)}")
 
     def compress_pdf_tmp(self, pdf_bytes: bytes, quality: str) -> bytes:
-        logging.debug(f"Compressing {len(pdf_bytes)} bytes with quality={quality} in tmp disk")
+        logging.debug(
+            f"Compressing {len(pdf_bytes)} bytes with quality={quality} in tmp disk"
+        )
 
         input_path = None
         output_path = None
@@ -64,10 +71,14 @@ class FileService:
                 input_file.write(pdf_bytes)
                 input_path = input_file.name
 
-            with tempfile.NamedTemporaryFile(suffix="_gs.pdf", delete=False) as output_file:
+            with tempfile.NamedTemporaryFile(
+                suffix="_gs.pdf", delete=False
+            ) as output_file:
                 output_path = output_file.name
 
-            with tempfile.NamedTemporaryFile(suffix="_qpdf.pdf", delete=False) as output_compress_file:
+            with tempfile.NamedTemporaryFile(
+                suffix="_qpdf.pdf", delete=False
+            ) as output_compress_file:
                 output_compress_path = output_compress_file.name
 
             gs_cmd = [
@@ -86,18 +97,17 @@ class FileService:
                 "-dFILTERTEXTANNOTATIONS=true",
                 "-dFILTERIMAGEANNOTATIONS=true",
                 f"-sOutputFile={output_path}",
-                input_path
+                input_path,
             ]
 
             gs_process = subprocess.run(
-                gs_cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                timeout=60
+                gs_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=60
             )
 
             if gs_process.returncode != 0:
-                raise RuntimeError(f"Error to compress file: {gs_process.stderr.decode('utf-8', 'ignore')}")
+                raise RuntimeError(
+                    f"Error to compress file: {gs_process.stderr.decode('utf-8', 'ignore')}"
+                )
 
             qpdf_cmd = [
                 "qpdf",
@@ -109,14 +119,13 @@ class FileService:
                 output_compress_path,
             ]
             qpdf_process = subprocess.run(
-                qpdf_cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                timeout=60
+                qpdf_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=60
             )
 
             if qpdf_process.returncode != 0:
-                raise RuntimeError(f"Error to compress file: {qpdf_process.stderr.decode('utf-8', 'ignore')}")
+                raise RuntimeError(
+                    f"Error to compress file: {qpdf_process.stderr.decode('utf-8', 'ignore')}"
+                )
 
             with open(output_compress_path, "rb") as file:
                 return file.read()
@@ -132,38 +141,44 @@ class FileService:
                         unlink(file_path)
                     except Exception:
                         pass
-    
+
     def merge_pdf(self, bytes_list: List[bytes]):
         input_paths = []
         output_path = None
 
         try:
             for i, pdf_bytes in enumerate(bytes_list):
-                with tempfile.NamedTemporaryFile(suffix=f"_{i}.pdf", delete=False) as input_file:
+                with tempfile.NamedTemporaryFile(
+                    suffix=f"_{i}.pdf", delete=False
+                ) as input_file:
                     input_file.write(pdf_bytes)
                     input_paths.append(input_file.name)
 
-            with tempfile.NamedTemporaryFile(suffix="_gs.pdf", delete=False) as output_file:
+            with tempfile.NamedTemporaryFile(
+                suffix="_gs.pdf", delete=False
+            ) as output_file:
                 output_path = output_file.name
 
             qpdf_cmd = [
                 "qpdf",
                 "--linearize",
                 "--empty",
-                "--pages", *input_paths, "--", output_path,
+                "--pages",
+                *input_paths,
+                "--",
+                output_path,
                 "--object-streams=generate",
                 "--compress-streams=y",
-                "--recompress-flate"
+                "--recompress-flate",
             ]
             qpdf_process = subprocess.run(
-                qpdf_cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                timeout=60
+                qpdf_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=60
             )
 
             if qpdf_process.returncode != 0:
-                raise RuntimeError(f"Error merging PDFs: {qpdf_process.stderr.decode('utf-8', 'ignore')}")
+                raise RuntimeError(
+                    f"Error merging PDFs: {qpdf_process.stderr.decode('utf-8', 'ignore')}"
+                )
 
             with open(output_path, "rb") as merged:
                 return merged.read()
