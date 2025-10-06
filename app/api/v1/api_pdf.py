@@ -1,6 +1,6 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, Form
 from fastapi.responses import StreamingResponse
-from ..services.file_service import FileService
+from ...services.file_service import FileService
 from io import BytesIO
 from typing import Literal, List
 

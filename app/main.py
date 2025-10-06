@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from .api import api_pdf
+from .api.v1 import api_pdf
 
 app = FastAPI(
     title="PDF Microservice",
