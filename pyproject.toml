@@ -1,0 +1,9 @@
+[project]
+name = "pdf-reductor"
+version = "0.1.0"
+description = "PDF compression and manipulation microservice using FastAPI, Ghostscript and qpdf"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi[standard]>=0.118.0",
+]
