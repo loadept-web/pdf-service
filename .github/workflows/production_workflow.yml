@@ -23,6 +23,7 @@ jobs:
           echo "$SSH_PRIVATE_KEY" > private_key.pem
           chmod 600 private_key.pem
 
+          ssh-keyscan -H $SERVER_IP >> ~/.ssh/known_hosts
           ssh -i ./private_key.pem $SERVER_USER@$SERVER_IP '
             pushd ./pdf-service > /dev/null &&
             git pull &&
