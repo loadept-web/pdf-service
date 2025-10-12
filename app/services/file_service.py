@@ -81,21 +81,56 @@ class FileService:
             ) as output_compress_file:
                 output_compress_path = output_compress_file.name
 
+            mono_quality = 300
+            color_image_quality = 96
+            gray_image_quality = 96
+
+            match quality:
+                case "printer":
+                    mono_quality = 600
+                    color_image_quality = 150
+                    gray_image_quality = 150
+                case "ebook":
+                    mono_quality = 300
+                    color_image_quality = 96
+                    gray_image_quality = 96
+                case "screen":
+                    mono_quality = 150
+                    color_image_quality = 72
+                    gray_image_quality = 72
+
             gs_cmd = [
                 "gs",
                 "-sDEVICE=pdfwrite",
-                "-dCompatibilityLevel=1.4",
+                "-dCompatibilityLevel=1.7",
                 f"-dPDFSETTINGS=/{quality}",
                 "-dNOPAUSE",
                 "-dQUIET",
                 "-dBATCH",
                 "-dDetectDuplicateImages=true",
+                "-dRemoveDuplicateImages=true",
                 "-dRemoveOPComments=true",
                 "-dCompressFonts=true",
+                "-dSubsetFonts=true",
+                "-dCompressPages=true",
+                "-dEmbedAllFonts=true",
+                "-dDownsampleColorImages=true",
+                f"-dColorImageResolution={color_image_quality}",
+                "-dColorImageDownsampleType=/Bicubic",
+                "-dAutoFilterColorImages=false",
+                "-dColorImageFilter=/DCTEncode",
+                "-dDownsampleGrayImages=true",
+                f"-dGrayImageResolution={gray_image_quality}",
+                "-dGrayImageDownsampleType=/Bicubic",
+                "-dAutoFilterGrayImages=false",
+                "-dGrayImageFilter=/DCTEncode",
+                "-dDownsampleMonoImages=true",
+                f"-dMonoImageResolution={mono_quality}",
+                "-dMonoImageDownsampleType=/Bicubic",
                 "-dDiscardComments=true",
                 "-dDiscardDocInfo=true",
-                "-dFILTERTEXTANNOTATIONS=true",
-                "-dFILTERIMAGEANNOTATIONS=true",
+                "-dFilterTextAnnotations=true",
+                "-dFilterImageAnnotations=true",
                 f"-sOutputFile={output_path}",
                 input_path,
             ]
@@ -111,10 +146,10 @@ class FileService:
 
             qpdf_cmd = [
                 "qpdf",
-                "--linearize",
+                "--stream-data=compress",
                 "--object-streams=generate",
                 "--compress-streams=y",
-                "--recompress-flate",
+                "--compression-level=9",
                 output_path,
                 output_compress_path,
             ]
