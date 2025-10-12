@@ -51,6 +51,7 @@ async def pdf_compressor(
                 "X-Compressed-size": str(compressed_size),
                 "X-Reduction-Percent": f"{reduction:.2f}",
                 "X-Quality-Level": quality,
+                "X-Compressed-Filename": f"{file_name}_compress.pdf"
             },
         )
     except Exception as e:
