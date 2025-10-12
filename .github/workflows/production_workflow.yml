@@ -2,7 +2,7 @@ name: Deploy project
 
 on:
   workflow_run:
-    workflows: ["Pre Production CI"]
+    workflows: ["Lint Code"]
     types:
       - completed
 
@@ -31,7 +31,7 @@ jobs:
           ssh -i ./private_key.pem $SERVER_USER@$SERVER_IP '
             pushd ./pdf-service > /dev/null &&
             git pull &&
-            .venv/bin/uv sync &&
+            .venv/bin/uv pip install . &&
             popd > /dev/null &&
             sudo systemctl restart pdf-service.service
           '

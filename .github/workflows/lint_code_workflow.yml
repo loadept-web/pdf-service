@@ -1,4 +1,4 @@
-name: Pre Production CI
+name: Lint Code
 
 on:
   push:
